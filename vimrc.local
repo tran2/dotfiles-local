@@ -1,0 +1,25 @@
+set tabstop=4
+set shiftwidth=4
+
+set nofoldenable " disable folding
+
+" search from current working directory
+let g:ctrlp_working_path_mode = 'w'
+
+" syntax highlight for javascript
+let g:syntastic_javascript_checkers = ['eslint']
+let g:syntastic_json_checkers = ['jsonlint']
+
+" check if there's eslint executable in node_modules and use that instead of
+" global eslint (eslint seems to read .eslintrc in the repo to look for plugin
+" global eslint will try to look in the global node_modules instead of local
+function GetCurrentFilePath()
+    return expand('%:p')
+endfunction
+function GetEslintExec()
+    let eslint_command = "eslint --debug " . GetCurrentFilePath()
+    execute "!" . eslint_command
+endfunction
+" call GetEslintExec()
+let g:syntastic_javascript_eslint_exec = '/Users/tratu/projects/dev/myplate/node_modules/eslint/bin/eslint.js'
+
