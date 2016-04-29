@@ -16,10 +16,36 @@ let g:syntastic_json_checkers = ['jsonlint']
 function GetCurrentFilePath()
     return expand('%:p')
 endfunction
-function GetEslintExec()
-    let eslint_command = "eslint --debug " . GetCurrentFilePath()
-    execute "!" . eslint_command
-endfunction
-" call GetEslintExec()
-let g:syntastic_javascript_eslint_exec = '/Users/tratu/projects/dev/myplate/node_modules/eslint/bin/eslint.js'
 
+function FindProjectRoot()
+    let cwd = getcwd()
+    let dir_list = split(cwd, "\/")
+    let i = len(dir_list) - 1
+    while i > 0
+       let dir = "\/" . join(dir_list[:i], "\/")
+       " assume that the dir holding packing.json is root
+       let glob_result = globpath(dir, 'package.json')
+       if strlen(glob_result) > 0
+           return dir
+       endif
+
+       let i -= 1
+    endwhile
+endfunction
+
+function GetEslintExec()
+    let eslint_cmd = "eslint --debug " . GetCurrentFilePath()
+    let grep_config_file = " 2>&1 | grep 'eslint:config-file'"
+    let shellcmd = eslint_cmd . grep_config_file
+    let eslint_output = system(shellcmd)
+    if strlen(eslint_output) > 0
+        let local_eslint = "/node_modules/eslint/bin/eslint.js"
+        let root_dir = FindProjectRoot()
+        let path_to_eslint = root_dir . local_eslint
+        return path_to_eslint
+    else
+        return 'eslint'
+    endif
+endfunction
+
+let g:syntastic_javascript_eslint_exec = GetEslintExec()
